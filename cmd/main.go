@@ -2,6 +2,7 @@ package main
 
 import (
 	"finance-app/internal/handler"
+	"finance-app/internal/middleware"
 	"finance-app/internal/storage"
 	"log"
 
@@ -18,19 +19,18 @@ func main() {
 	// Инициализация Gin
 	r := gin.Default()
 
-	// Маршруты для API
-	r.GET("/api/transactions", handler.GetTransactions(db))
-	r.POST("/api/transactions", handler.AddTransactions(db))
-	r.PUT("/api/transactions", handler.UpdateTransactions(db))
-	r.DELETE("/api/transactions", handler.DeleteTransactions(db))
+	// Маршруты для авторизации
+	r.POST("/api/register", handler.Register(db))
+	r.POST("/api/login", handler.Login(db))
+
+	// Маршруты для работы с транзакциями
+	r.GET("/api/transactions", middleware.AuthMiddleware(), handler.GetTransactions(db))
+	r.POST("/api/transactions", middleware.AuthMiddleware(), handler.AddTransactions(db))
+	r.PUT("/api/transactions", middleware.AuthMiddleware(), handler.UpdateTransactions(db))
+	r.DELETE("/api/transactions", middleware.AuthMiddleware(), handler.DeleteTransactions(db))
 
 	// Отдача статических файлов (правильный путь для /web)
 	r.Static("/web", "./web") // Все файлы из папки ./web будут доступны по пути /web
-
-	// Для главной страницы, отдаём index.html при запросе по /web
-	// r.GET("/web", func(c *gin.Context) {
-	// 	c.File("./web/index.html")
-	// })
 
 	// Запуск сервера
 	if err := r.Run(":8080"); err != nil {

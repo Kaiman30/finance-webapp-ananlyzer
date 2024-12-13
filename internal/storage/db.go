@@ -11,14 +11,13 @@ var DB *gorm.DB
 
 // Инициализация БД
 func InitDB() (*gorm.DB, error) {
-	// Открываем или создаем SQLite БД
 	db, err := gorm.Open("sqlite3", "./finance.db")
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при подключении к базе данных: %v", err)
 	}
 
-	// Автоматическое создание таблиц
-	if err := db.AutoMigrate(&Transactions{}).Error; err != nil {
+	// Автоматическая миграция для создания таблиц
+	if err := db.AutoMigrate(&Transactions{}, &User{}).Error; err != nil {
 		return nil, fmt.Errorf("не удалось создать таблицы: %v", err)
 	}
 
@@ -32,4 +31,10 @@ type Transactions struct {
 	Description string  `json:"description"`
 	Amount      float64 `json:"amount"`
 	Category    string  `json:"category"`
+}
+
+type User struct {
+	ID       uint   `json:"id"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
